@@ -37,3 +37,14 @@ go.work.sum
 
 
 .DS_Store
+
+# DDoS test results
+
+
+bin/main
+
+*.txt
+
+# mac
+.DS_Store
+bin/main

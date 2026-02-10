@@ -14,9 +14,7 @@ func main() {
 	}
 
 	// Configure addresses from environment variables
-	httpsAddr := env.GetString("HTTPS_ADDR", "192.168.0.50:8086")
-	certFile := env.GetString("TLS_CERT_FILE", "/var/www/.cache/0x03ff.ddns.net/fullchain.pem")
-	keyFile := env.GetString("TLS_KEY_FILE", "/var/www/.cache/0x03ff.ddns.net/private.key")
+	httpsAddr := env.GetString("HTTPS_ADDR", "192.168.0.10:8086")
 
 	// Create application config
 	cfg := config{
@@ -28,7 +26,7 @@ func main() {
 
 	// Start HTTPS server (this will block the main thread)
 	log.Printf(" HTTPS server starting on %s", httpsAddr)
-	if err := app.runTLS(mux, certFile, keyFile); err != nil {
+	if err := app.run(mux); err != nil {
 		log.Fatalf(" HTTPS server failed: %v", err)
 	}
 }
