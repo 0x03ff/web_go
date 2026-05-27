@@ -1,66 +1,57 @@
 package main
 
 import (
-	"net/http"
-	"os"
-	"time"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+    "log"
+    "net/http"
+    "strings"
+    "time"
 )
 
-// For dependencies
-type application struct {
-	config config
-}
-
-// Configuration
-type config struct {
-	addr string
-}
-
 func (app *application) mount() http.Handler {
-	r := chi.NewRouter()
+    // 1. Create a native Go ServeMux (Router)
+    mux := http.NewServeMux()
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(60 * time.Second))
+    // 2. Build the explicit URL match path
+    // e.g., "/.well-known/pki-validation/37B60801A77A091CF0AED6D1ECA6B65C.txt"
+    routePath := "/.well-known/pki-validation/" + app.config.textName
 
-	r.Route("/", func(r chi.Router) {
-		r.Get("/.well-known/pki-validation/*", func(w http.ResponseWriter, req *http.Request) {
-			// Use os.DirFS to create a file system rooted at the current directory
-			// and wrap it with http.FS.
-			// In a real application, you might use go:embed for a more robust solution.
-			const fileName = "7F222F8032FFA57AEC8DB93BEAEC3895.txt"
+    // 3. Register the handler specifically for this path
+    mux.HandleFunc(routePath, func(w http.ResponseWriter, req *http.Request) {
+        // Guard clause: Ensure it only handles exact matches and GET requests
+        if req.Method != http.MethodGet {
+            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+            return
+        }
 
-			// Open the file
-			f, err := os.Open(fileName)
-			if err != nil {
-				http.Error(w, "File not found", http.StatusNotFound)
-				return
-			}
-			defer f.Close()
+        contentReader := strings.NewReader(validationFileContents)
+        http.ServeContent(w, req, app.config.textName, time.Now(), contentReader)
+    })
 
-			// Serve the file directly
-			http.ServeContent(w, req, fileName, time.Now(), f)
-		})
-
-	})
-
-	return r
+    // 4. Wrap the mux with custom lightweight logging middleware
+    return app.loggerMiddleware(mux)
 }
 
-// HTTPS server only (TLS)
-func (app *application) run(mux http.Handler) error {
-	srv := &http.Server{
-		Addr:         app.config.addr,
-		Handler:      mux,
-		WriteTimeout: 30 * time.Second,
-		ReadTimeout:  10 * time.Second,
-		IdleTimeout:  time.Minute,
-	}
+// A simple native logging middleware to track incoming verification requests
+func (app *application) loggerMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        start := time.Now()
+        
+        // Process the actual request
+        next.ServeHTTP(w, r)
+        
+        // Log the details once complete
+        log.Printf("[HTTP] %s %s from %s took %v", r.Method, r.URL.Path, r.RemoteAddr, time.Since(start))
+    })
+}
 
-	return srv.ListenAndServe()
+func (app *application) run(mux http.Handler) error {
+    srv := &http.Server{
+        Addr:         app.config.addr,
+        Handler:      mux,
+        WriteTimeout: 30 * time.Second,
+        ReadTimeout:  10 * time.Second,
+        IdleTimeout:  time.Minute,
+    }
+
+    return srv.ListenAndServe()
 }

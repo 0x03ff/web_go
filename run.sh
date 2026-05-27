@@ -1,1 +1,0 @@
-go build -o ./bin/main ./cmd/ && sudo ./bin/main

@@ -32,19 +32,13 @@ go.work.sum
 # .idea/
 .vscode/
 
-#air cli
-.air.toml
+# binary
 
-
-.DS_Store
-
-# DDoS test results
-
-
-bin/main
+bin/*
+!.gitkeep
 
 *.txt
 
 # mac
 .DS_Store
-bin/main
+
