@@ -1,7 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Exit immediately if a command exits with a non-zero status
-set -e
+# Exit immediately on error, undefined variables, or pipe failures
+set -euo pipefail
+
+# Always run relative to project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$SCRIPT_DIR"
 
 echo "=========================================="
 echo "      Go Cross-Compiler CLI Wizard        "
@@ -24,7 +28,7 @@ esac
 # 2. Select Architecture
 echo -e "\nSelect Target Architecture:"
 echo "1) amd64 (64-bit Intel/AMD)"
-echo "2) arm64 (Apple Silicon M-Series, Raspberry Pi, etc.)"
+echo "2) arm64 (Apple Silicon, TV Boxes, Raspberry Pi)"
 read -p "Enter choice [1-2]: " arch_choice
 
 case $arch_choice in
@@ -35,19 +39,23 @@ esac
 
 # 3. Handle File Extension for Windows Binaries
 EXT=""
-if [ "$GOOS" == "windows" ]; then
+if [ "$GOOS" = "windows" ]; then
     EXT=".exe"
 fi
 
-# 4. Set Output Name dynamically based on choices
-OUTPUT_NAME="bin/main-${GOOS}-${GOARCH}${EXT}"
+# 4. Ensure output directory exists
+mkdir -p bin
+
+# 5. Set Output Name dynamically based on choices
+OUTPUT_NAME="bin/web_go-${GOOS}-${GOARCH}${EXT}"
 
 echo -e "\n------------------------------------------"
 echo "Compiling for: GOOS=$GOOS | GOARCH=$GOARCH"
 echo "Output file:   $OUTPUT_NAME"
 echo "------------------------------------------"
 
-# Execute the Go build command with embedded flags disabled (CGO_ENABLED=0)
-CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -o "$OUTPUT_NAME" ./cmd
+# Execute the Go build command with stripped debugging symbols for minimal binary size
+CGO_ENABLED=0 GOOS=$GOOS GOARCH=$GOARCH go build -ldflags="-s -w" -o "$OUTPUT_NAME" ./cmd
 
 echo "✔ Build successful!"
+ls -lh "$OUTPUT_NAME"

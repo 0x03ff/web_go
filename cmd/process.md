@@ -47,3 +47,25 @@ Using the Go standard library rather than pulling down framework dependencies ke
 
 * Finalize validation testing natively on an Apple Silicon macOS environment (`darwin/arm64`).
 * Transfer the static `cgo`-disabled Linux binary (`main-linux-amd64`) directly to the production cloud infrastructure for live validation execution.
+
+## 2026-07-30 | Improve architecture on Dynamic File Serving
+
+### Intent
+
+Compare the initial compile-time embedded model (`go:embed`) with file-system-based validation server (`/tmp/acme-challenges/` + Certbot hook scripts)  to determine the optimal deployment strategy for SSL/TLS verification workflow.
+
+### Action
+
+* The embed version focus on manual CA verification (ZeroSSL/Sectigo while new version mainly automated Let's Encrypt renewals via Certbot.
+
+### Result
+
+* **Dynamic File Model (`from`):** Offers superior long-term automation then orignal embed design, while remain support ofmanual CA verification with script
+
+### Decision / Interpretation
+
+Keep both the **embedded model (`go:embed`)** and  **one-off manual CA verifications** due to its  better for fully automated recurring renewals (Let's Encrypt) with cert bot
+
+### Next
+
+* Testing the work flow with Certbot

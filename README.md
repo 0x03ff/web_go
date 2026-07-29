@@ -6,23 +6,40 @@ A minimalist Go web server designed to pass ACME/SSL HTTP domain verification ch
 
 ### Production Environment Installation
 
-To compile and run this service, only need the Go toolchain installed:
+To compile `web_go` from source, ensure you have the Go toolchain installed:
 
-```
+```bash
 sudo apt update
 sudo apt install git golang-go -y
 go version
 ```
 
-## Development
+### Deployment & Usage
 
-### 1. Place Your Challenge File
+Manual CA File Placement (ZeroSSL / Sectigo)
 
-Place the validation text file provided by your Certificate Authority (CA) directly inside the `cmd/` directory:
+#### 1. Place Your Challenge File
 
-Modify the exist address and port if need, public access with port 80 require the sudo:
+Use the included helper script to easily add challenge files without dealing with manual directory creation or multi-line copy-paste shell errors:
 
-### 2. Configure Address and Port
+Run the helper script in your terminal:
+
+📦scripts
+ ┣ 📜add-challenge-file.sh <--
+ ┣ 📜compile.sh
+ ┣ 📜renew-cert.sh
+ ┗ 📜run.sh
+
+```bash
+ ./scripts/add-challenge-file.sh
+```
+
+1. Enter the target filename (e.g., 37B60801A77A091CF0AED6D1ECA6B65C.txt).
+2. Paste the challenge payload into the editor prompt, copy the challenge content and paste on the editor.
+
+The challenge file will automatically be created inside */tmp/acme-challenges/*, ready to be served.
+
+#### 2. Configure Address and Port
 
 Open `cmd/main.go` and adjust your network interface binding. Publicly exposing the application on the standard web port 80 will require root/sudo access:
 
@@ -32,30 +49,13 @@ Open `cmd/main.go` and adjust your network interface binding. Publicly exposing 
 	// "0.0.0.0:8080"                    -> Public on port 8080
 	// "0.0.0.0:80"                      -> Public on standard HTTP port (Requires sudo)
 	HTTP_ADDR = "127.0.0.1:8080"
-
 ```
 
-### 3. Update the Embed Directives
+Then use script to run server:
 
-Update the configuration constants and compiler directives in `cmd/main.go` to match your exact file name. This bakes the file contents straight into the compiled binary:
-
+```bash
+ ./scripts/run.sh
 ```
-
-// The precise validation filename provided by Certificate Authority (CA) like ZeroSSL
-TEXT_NAME = "37B60801A77A091CF0AED6D1ECA6B65C.txt"
-
-//go:embed 37B60801A77A091CF0AED6D1ECA6B65C.txt
-var validationFileContents string
-
-```
-
-### 4. Update the URL routing path if need
-
-*The URL routing path is managed dynamically in `cmd/api.go` relative to configuration settings:*
-
-`routePath := "/.well-known/pki-validation/" + app.config.textName`
-
----
 
 ## Local Testing Instructions
 
@@ -66,22 +66,43 @@ Once your file is placed and `main.go` is updated, execute the local testing scr
 Open your web browser to verify the raw payload output:
 
 ```
-http://127.0.0.1:8080/.well-known/pki-validation/37B60801A77A091CF0AED6D1ECA6B65C.txt( It depend))
+http://127.0.0.1:8080/.well-known/pki-validation/37B60801A77A091CF0AED6D1ECA6B65C.txt( It depend)
 ```
 
 ---
 
+### Automated Certbot Integration (Let's Encrypt)
+
+If you are using Certbot for Let's Encrypt certificates, you can automate domain verification completely using standard HTTP hooks without manually editing files.
+
+Run the issue script with your domain name:
+
+```bash
+sudo ./scripts/get-cert.sh example.com
+```
+
+This automatically passes the validation token to *web_go*, validates your domain, and cleans up the challenge file upon completion.
+
+## Local Testing Instructions
+
+Once your file is placed (or when testing the routing engine), execute the local development runner to safely verify routes without generating binary build artifacts on disk:
+
+Start the server:
+
+```bash
+./scripts/run.sh
+```
+
 ## Multi-Platform Compilation
 
-When local verification passes, change your `HTTP_ADDR` constant to production preferences (`0.0.0.0:80`) and trigger the cross-compilation wizard:
+When local verification passes, set your *HTTP_ADDR* constant to production preferences (*0.0.0.0:80*) and trigger the cross-compilation wizard:
 
-<pre id="tree-panel"><bold><span class="t-icon" name="icons">📦</span>scripts</bold><br/> ┣ <span class="t-icon" name="icons">📜</span>compile.sh <-----<br/> ┗ <span class="t-icon" name="icons">📜</span>run.sh</pre>
+```bash
+./scripts/compile.sh
+```
 
-The interactive wizard outputs target-specific assets cleanly into your `bin/` directory:
-
-<pre id="tree-panel"><bold><span class="t-icon" name="icons">📦</span>bin</bold><br/> ┣ <span class="t-icon" name="icons">📜</span>.DS_Store<br/> ┣ <span class="t-icon" name="icons">📜</span>.gitkeep<br/> ┗ <span class="t-icon" name="icons">📜</span>main-linux-amd64 <-----</pre>
-
+The wizard outputs stripped, static, binaries into the bin/ directory:
 
 ## Deployment
 
-Because this architecture utilizes go:embed and compiles with CGO_ENABLED=0, the target binary is self-contained. It only need to transfer that single binary asset to other computer or remote cloud instance to solve domain challenge.
+Transfer the single compiled asset to your target computer or remote cloud instance to solve domain challenges with zero external runtime dependencies.
