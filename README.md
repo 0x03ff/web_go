@@ -31,7 +31,7 @@ Open `cmd/main.go` and adjust your network interface binding. Publicly exposing 
 	// "127.0.0.1:8080"                  -> Local testing
 	// "0.0.0.0:8080"                    -> Public on port 8080
 	// "0.0.0.0:80"                      -> Public on standard HTTP port (Requires sudo)
-	HTTP_ADDR = "127.0.0.1:8080"
+	HTTP_ADDR = "0.0.0.0:8080"
 
 ```
 
@@ -42,9 +42,9 @@ Update the configuration constants and compiler directives in `cmd/main.go` to m
 ```
 
 // The precise validation filename provided by Certificate Authority (CA) like ZeroSSL
-TEXT_NAME = "37B60801A77A091CF0AED6D1ECA6B65C.txt"
+TEXT_NAME = "example.txt" , update as file name:
 
-//go:embed 37B60801A77A091CF0AED6D1ECA6B65C.txt
+//go:embed challenge.txt
 var validationFileContents string
 
 ```
@@ -54,6 +54,8 @@ var validationFileContents string
 *The URL routing path is managed dynamically in `cmd/api.go` relative to configuration settings:*
 
 `routePath := "/.well-known/pki-validation/" + app.config.textName`
+`routePath := "/.well-known/acme-challenge/" + app.config.textName`
+
 
 ---
 
@@ -63,7 +65,7 @@ Once your file is placed and `main.go` is updated, execute the local testing scr
 
 <pre id="tree-panel"><bold><span class="t-icon" name="icons">📦</span>scripts</bold><br/> ┣ <span class="t-icon" name="icons">📜</span>compile.sh<br/> ┗ <span class="t-icon" name="icons">📜</span>run.sh <-------</pre>
 
-Open your web browser to verify the raw payload output:( It depend)
+Open your web browser or curl to verify the raw payload output:( It depend)
 
 ```
 http://127.0.0.1:8080/.well-known/pki-validation/37B60801A77A091CF0AED6D1ECA6B65C.txt
@@ -74,7 +76,7 @@ http://127.0.0.1:8080/.well-known/acme-challenge/37B60801A77A091CF0AED6D1ECA6B65
 
 ## Multi-Platform Compilation
 
-When local verification passes, change your `HTTP_ADDR` constant to production preferences (`0.0.0.0:80`) and trigger the cross-compilation wizard:
+When local verification passes, change your `HTTP_ADDR` constant to production preferences (`0.0.0.0:80`) or keep fefault with port 80 request forward port 8080 and trigger the cross-compilation wizard:
 
 <pre id="tree-panel"><bold><span class="t-icon" name="icons">📦</span>scripts</bold><br/> ┣ <span class="t-icon" name="icons">📜</span>compile.sh <-----<br/> ┗ <span class="t-icon" name="icons">📜</span>run.sh</pre>
 
