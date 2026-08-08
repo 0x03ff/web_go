@@ -37,7 +37,11 @@ go.work.sum
 bin/*
 !.gitkeep
 
+# Ignore all txt files
 *.txt
+
+# Allow specific text files
+!challenge.txt
 
 # mac
 .DS_Store

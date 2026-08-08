@@ -17,10 +17,10 @@ const (
 	// "127.0.0.1:8080"                  -> Local testing
 	// "0.0.0.0:8080"                    -> Public on port 8080
 	// "0.0.0.0:80"                      -> Public on standard HTTP port (Requires sudo)
-	HTTP_ADDR = "127.0.0.1:8080"
+	HTTP_ADDR = "0.0.0.0:8080"
 
 	// The precise validation filename provided by Certificate Authority (CA) like ZeroSSL / Let's Encrypt
-	TEXT_NAME = "37B60801A77A091CF0AED6D1ECA6B65C.txt"
+	TEXT_NAME = "challenge.txt"
 )
 
 /*
@@ -28,7 +28,7 @@ const (
 	and ensure the filename matches the directive below.
 */
 
-//go:embed 37B60801A77A091CF0AED6D1ECA6B65C.txt
+//go:embed challenge.txt
 var validationFileContents string
 
 func main() {

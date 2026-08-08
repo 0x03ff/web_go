@@ -63,10 +63,11 @@ Once your file is placed and `main.go` is updated, execute the local testing scr
 
 <pre id="tree-panel"><bold><span class="t-icon" name="icons">📦</span>scripts</bold><br/> ┣ <span class="t-icon" name="icons">📜</span>compile.sh<br/> ┗ <span class="t-icon" name="icons">📜</span>run.sh <-------</pre>
 
-Open your web browser to verify the raw payload output:
+Open your web browser to verify the raw payload output:( It depend)
 
 ```
-http://127.0.0.1:8080/.well-known/pki-validation/37B60801A77A091CF0AED6D1ECA6B65C.txt( It depend))
+http://127.0.0.1:8080/.well-known/pki-validation/37B60801A77A091CF0AED6D1ECA6B65C.txt
+http://127.0.0.1:8080/.well-known/acme-challenge/37B60801A77A091CF0AED6D1ECA6B65C.txt
 ```
 
 ---
